@@ -65,6 +65,11 @@
 #endif
 
 
+#ifdef CONFIG_BCM2708_GPIO
+#include <linux/pps-gpio.h>
+#endif
+
+
 /* Effectively we have an IOMMU (ARM<->VideoCore map) that is set up to
  * give us IO access only to 64Mbytes of physical memory (26 bits).  We could
  * represent this window by setting our dmamasks to 26 bits but, in fact
@@ -427,6 +432,21 @@ static struct resource bcm2708_gpio_resources[] = {
 	       },
 };
 
+/* PPS-GPIO platform data */
+static struct pps_gpio_platform_data pps_gpio_info = {
+.assert_falling_edge = false,
+.capture_clear= false,
+.gpio_pin=24,
+.gpio_label="PPS",
+};
+static struct platform_device pps_gpio_device = {
+.name = "pps-gpio",
+.id = -1,
+.dev = {
+.platform_data = &pps_gpio_info
+},
+};
+
 static u64 gpio_dmamask = DMA_BIT_MASK(DMA_MASK_BITS_COMMON);
 
 static struct platform_device bcm2708_gpio_device = {
@@ -748,6 +768,7 @@ void __init bcm2708_init(void)
 	bcm_register_device(&bcm2708_vcio_device);
 #ifdef CONFIG_BCM2708_GPIO
 	bcm_register_device(&bcm2708_gpio_device);
+	bcm_register_device(&pps_gpio_device);
 #endif
 #if defined(CONFIG_W1_MASTER_GPIO) || defined(CONFIG_W1_MASTER_GPIO_MODULE)
 	platform_device_register(&w1_device);
